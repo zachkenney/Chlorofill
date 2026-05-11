@@ -24,6 +24,13 @@ main()
 async def on_ready():
     print('We are alive.')
 
+@task.loop(hours=24)
+async def check_watering(ctx):
+    today = date.today().isoformat()
+    plants = checkdate(today)
+    for plant in plants:
+        await ctx.send(f'{plant['name']} needs to be watered.')
+
 @bot.command()
 async def add_plant(ctx):
     if ctx.channel.name != 'plants':

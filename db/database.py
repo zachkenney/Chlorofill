@@ -64,10 +64,10 @@ def find():
     conn.close()
     return plants
 
-def log():
+def checkdate(today):
     conn = get_connection()
     cur = conn.cursor()
 
-    log = cur.execute('select * from watering_log').fetchall()
+    log = cur.execute(f'select * from watering_log inner join plants on plants.id = watering_log.plant_id where next_date = ?', (today, )).fetchall()
     conn.close()
     return log
