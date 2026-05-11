@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import date
+from datetime import date, timedelta
 
 DB_PATH = "plants.db"
 
@@ -24,6 +24,7 @@ def init_db():
             id                INTEGER PRIMARY KEY AUTOINCREMENT,
             plant_id          INTEGER NOT NULL,
             watered_on        TEXT NOT NULL,
+            next_date         TEXT NOT NULL,
             FOREIGN KEY (plant_id) REFERENCES plants(id)
         );
     """)
@@ -31,7 +32,9 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add(name, species, watering_interval_days, last_watered):
+def add(name, species, watering_interval_days, watered_on):
+    next_date = date.fromisoformat(watered_on) + timedelta(days=watering_interval_days)   
+    
     conn = get_connection()
     cur = conn.cursor()
 
@@ -40,9 +43,11 @@ def add(name, species, watering_interval_days, last_watered):
         (name, species, watering_interval_days)
     )
     plant_id = cur.fetchone()[0]
+    
+
     cur.execute(
-        'INSERT INTO watering_log (plant_id, watered_on) VALUES (?, ?)',
-        (plant_id, last_watered)
+        'INSERT INTO watering_log (plant_id, watered_on, next_date) VALUES (?, ?, ?)',
+        (plant_id, watered_on, next_date)
     )
     conn.commit()
     conn.close()
@@ -54,7 +59,8 @@ def find():
     conn = get_connection()
     cur = conn.cursor()
 
-    plants = cur.execute('select * from plants').fetchall()
+    plants = cur.execute('select plants.*, watering_log.next_date from plants inner join watering_log on watering_log.plant_id = plants.id;').fetchall()
+    #date = cur.execute('select next_date from watering_log').fetchall()
     conn.close()
     return plants
 

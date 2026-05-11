@@ -12,7 +12,7 @@ token = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-
+## eventually i want to switch to modals.
 bot = commands.Bot(command_prefix='!',intents=intents)
 
 def main():
@@ -41,9 +41,14 @@ async def add_plant(ctx):
     await ctx.send('When was the plant last watered?')
     watered_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
 
-    add(species_msg.content,name_msg.content,int(interval_msg.content), watered_msg.content)
+    add(name_msg.content,species_msg.content,int(interval_msg.content), watered_msg.content)
     await ctx.send(f'{name_msg.content} added!')
 
+@bot.command()
+async def get_plants(ctx):
+    plants = find()
+    for plant in plants:
+        await ctx.send(f'{plant['name']} ({plant['species']}) wants to be watered every {plant['watering_interval_days']} days. Next watering date is {plant['next_date']}')
 
 #### FUNCTION CALLS
 #get_plant()
