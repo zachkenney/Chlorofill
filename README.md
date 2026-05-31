@@ -1,2 +1,2 @@
 # Chlorofill
-Discord bot for scheduling plant watering alerts
+Work In Progress Discord bot for scheduling plant watering alerts
