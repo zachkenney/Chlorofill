@@ -32,8 +32,16 @@ def init_db():
     conn.commit()
     conn.close()
 
+def _parse_date(s):
+    for fmt in ('%Y-%m-%d', '%m/%d/%Y'):
+        try:
+            return datetime.strptime(s,fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(f'Unrecognized date format: {s}. Use YYYY-MM-DD.')
+
 def add(name, species, watering_interval_days, watered_on):
-    next_date = date.fromisoformat(watered_on) + timedelta(days=watering_interval_days)   
+    next_date = _parse_date(watered_on) + timedelta(days=watering_interval_days)   
     
     conn = get_connection()
     cur = conn.cursor()
