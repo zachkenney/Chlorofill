@@ -60,14 +60,36 @@ def add(name, species, watering_interval_days, watered_on):
     conn.commit()
     conn.close()
 
-def addlog():
-    pass
+def addlog(name):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    plant = cur.execute(
+        'SELECT id, watering_interval_days FROM plants WHERE name = ?', (name,)
+    ).fetchone()
+
+    today = date.today()
+    next_date = today + timedelta(days=plant['watering_interval_days'])
+
+    cur.execute(
+        'INSERT INTO watering_log (plant_id, watered_on, next_date) VALUES (?,?,?)',
+        (plant['id'], today.isoformat(), next_date.isoformat())
+    )
+    conn.commit()
+    cur.close()
 
 def find():
     conn = get_connection()
     cur = conn.cursor()
 
-    plants = cur.execute('select plants.*, watering_log.next_date from plants inner join watering_log on watering_log.plant_id = plants.id;').fetchall()
+    plants = cur.execute('''
+    SELECT plants.*, wl.next_date 
+    FROM plants 
+    INNER JOIN watering_log wl ON wl.plant_id = plants.id 
+    WHERE wl.id = (
+        SELECT MAX(id) FROM watering_log WHERE plant_id = plants.id
+    )
+    ''').fetchall()
     #date = cur.execute('select next_date from watering_log').fetchall()
     conn.close()
     return plants

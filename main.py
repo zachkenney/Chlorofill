@@ -16,6 +16,7 @@ intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix='/',intents=intents)
 MY_GUILD = discord.Object(id=guild)
+
 def main():
     init_db()
 
@@ -44,7 +45,11 @@ async def add_plant(interaction: discord.Interaction):
 async def get_plants(interaction: discord.Interaction):
     plants = find()
     table = tabulate([dict(p) for p in plants], headers='keys')
-    await interaction.response.send_message(f"```{table}```")
+    await interaction.response.send_message(f'```{table}```')
 
+@bot.tree.command(guild=MY_GUILD)
+async def watered(interaction: discord.Interaction, nickname:str):
+    addlog(nickname)
+    await interaction.response.send_message(f'{nickname} watered!')
 
 bot.run(token)
