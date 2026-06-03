@@ -52,4 +52,23 @@ async def watered(interaction: discord.Interaction, nickname:str):
     addlog(nickname)
     await interaction.response.send_message(f'{nickname} watered!')
 
+class ConfirmDelete(discord.ui.View):
+    def __init__(self, nickname):
+        super().__init__()
+        self.nickname = nickname
+
+    @discord.ui.button(label='Yes', style=discord.ButtonStyle.danger)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        delete(self.nickname)
+        await interaction.response.send_message(f'{self.nickname} deleted.')
+
+    @discord.ui.button(label='No', style=discord.ButtonStyle.secondary)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message('Cancelled.')
+
+@bot.tree.command(guild=MY_GUILD)
+async def remove_plant(interaction: discord.Interaction, nickname:str):
+    view = ConfirmDelete(nickname)
+    await interaction.response.send_message(f'Delete {nickname}, are you sure?', view=view)
+
 bot.run(token)

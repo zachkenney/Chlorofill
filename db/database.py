@@ -25,7 +25,7 @@ def init_db():
             plant_id          INTEGER NOT NULL,
             watered_on        TEXT NOT NULL,
             next_date         TEXT NOT NULL,
-            FOREIGN KEY (plant_id) REFERENCES plants(id)
+            FOREIGN KEY (plant_id) REFERENCES plants(id) ON DELETE CASCADE
         );
     """)
 
@@ -101,3 +101,20 @@ def checkdate(today):
     log = cur.execute(f'select * from watering_log inner join plants on plants.id = watering_log.plant_id where next_date = ?', (today, )).fetchall()
     conn.close()
     return log
+
+def findname(name):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    plant = cur.execute(f'SELECT name, species FROM plants WHERE name = ?', (name,))
+    conn.commit()
+    cur.close()
+
+def delete(name):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    plant_delete = cur.execute(f'DELETE FROM plants WHERE name = ?', (name,))
+    conn.commit()
+    cur.close()
+
