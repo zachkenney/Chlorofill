@@ -10,6 +10,7 @@ import os
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 guild = int(os.getenv('GUILD_ID')) # clean this up once done to make it global.
+channel = os.getenv('CHANNEL_ID')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -24,6 +25,7 @@ main()
 
 @bot.event
 async def on_ready():
+    check_watering.start()
     await bot.tree.sync(guild=discord.Object(id=guild))  # syncs guild commands
     print('Commands synced.')
 
@@ -70,5 +72,13 @@ class ConfirmDelete(discord.ui.View):
 async def remove_plant(interaction: discord.Interaction, nickname:str):
     view = ConfirmDelete(nickname)
     await interaction.response.send_message(f'Delete {nickname}, are you sure?', view=view)
+
+@tasks.loop(hours=24)
+async def check_watering():
+    today = date.today().isoformat()
+    plants = checkdate(today)
+    channel = bot.get_channel(int(os.getenv('PLANTS_CHANNEL_ID')))
+    for plant in plants:
+        await channel.send(f"{plant['name']} needs to be watered!")
 
 bot.run(token)
