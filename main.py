@@ -3,17 +3,20 @@ from tabulate import tabulate
 import logging
 from db.database import *
 import discord
-from discord.ext import commands
+from discord import app_commands
+from discord.ext import commands, tasks
 import os
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
+guild = int(os.getenv('GUILD_ID')) # clean this up once done to make it global.
+channel = os.getenv('CHANNEL_ID')
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-## eventually i want to switch to modals.
-bot = commands.Bot(command_prefix='!',intents=intents)
+bot = commands.Bot(command_prefix='/',intents=intents)
+MY_GUILD = discord.Object(id=guild)
 
 def main():
     init_db()
@@ -22,37 +25,60 @@ main()
 
 @bot.event
 async def on_ready():
-    print('We are alive.')
+    check_watering.start()
+    await bot.tree.sync(guild=discord.Object(id=guild))  # syncs guild commands
+    print('Commands synced.')
 
-@bot.command()
-async def add_plant(ctx):
-    if ctx.channel.name != 'plants':
-        await ctx.send('This command can only be used in #plants.')
-        return
-    await ctx.send('What species is your plant?')
-    species_msg = await bot.wait_for('message', check= lambda m: m.author == ctx.author)
+class AddPlantModal(discord.ui.Modal, title='Add a Plant'):
+    species = discord.ui.TextInput(label='Species')
+    nickname = discord.ui.TextInput(label='Nickname')
+    interval = discord.ui.TextInput(label='Watering interval (days)')
+    last_watered = discord.ui.TextInput(label='Last watered (YYYY-MM-DD)')
 
-    await ctx.send('What\'s your plants nickname?')
-    name_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+    async def on_submit(self, interaction: discord.Interaction):
+        add(self.nickname.value, self.species.value, int(self.interval.value), self.last_watered.value)
+        await interaction.response.send_message(f"{self.nickname.value} added!")    
 
-    await ctx.send('How often does this plant need to be watered? Numbers only please!')
-    interval_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
+@bot.tree.command(guild=MY_GUILD)
+async def add_plant(interaction: discord.Interaction):
+    await interaction.response.send_modal(AddPlantModal())
 
-    await ctx.send('When was the plant last watered?')
-    watered_msg = await bot.wait_for('message', check=lambda m: m.author == ctx.author)
-
-    add(name_msg.content,species_msg.content,int(interval_msg.content), watered_msg.content)
-    await ctx.send(f'{name_msg.content} added!')
-
-@bot.command()
-async def get_plants(ctx):
+@bot.tree.command(guild=MY_GUILD)
+async def get_plants(interaction: discord.Interaction):
     plants = find()
-    for plant in plants:
-        await ctx.send(f'{plant['name']} ({plant['species']}) wants to be watered every {plant['watering_interval_days']} days. Next watering date is {plant['next_date']}')
+    table = tabulate([dict(p) for p in plants], headers='keys')
+    await interaction.response.send_message(f'```{table}```')
 
-#### FUNCTION CALLS
-#get_plant()
-#plant_list()
-#water_log()
+@bot.tree.command(guild=MY_GUILD)
+async def watered(interaction: discord.Interaction, nickname:str):
+    addlog(nickname)
+    await interaction.response.send_message(f'{nickname} watered!')
+
+class ConfirmDelete(discord.ui.View):
+    def __init__(self, nickname):
+        super().__init__()
+        self.nickname = nickname
+
+    @discord.ui.button(label='Yes', style=discord.ButtonStyle.danger)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        delete(self.nickname)
+        await interaction.response.send_message(f'{self.nickname} deleted.')
+
+    @discord.ui.button(label='No', style=discord.ButtonStyle.secondary)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message('Cancelled.')
+
+@bot.tree.command(guild=MY_GUILD)
+async def remove_plant(interaction: discord.Interaction, nickname:str):
+    view = ConfirmDelete(nickname)
+    await interaction.response.send_message(f'Delete {nickname}, are you sure?', view=view)
+
+@tasks.loop(hours=24)
+async def check_watering():
+    today = date.today().isoformat()
+    plants = checkdate(today)
+    channel = bot.get_channel(int(os.getenv('PLANTS_CHANNEL_ID')))
+    for plant in plants:
+        await channel.send(f"{plant['name']} needs to be watered!")
 
 bot.run(token)
