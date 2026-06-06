@@ -29,7 +29,8 @@ async def on_ready():
         print('Commands synced.')
     except Exception as e:
         print(f'Sync failed: {e}')
-    check_watering.start()
+    if not check_watering.is_running():
+        check_watering.start()
         
 class AddPlantModal(discord.ui.Modal, title='Add a Plant'):
     species = discord.ui.TextInput(label='Species')
