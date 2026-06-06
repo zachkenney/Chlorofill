@@ -9,13 +9,11 @@ import os
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
-guild = int(os.getenv('GUILD_ID')) # clean this up once done to make it global.
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix='/',intents=intents)
-MY_GUILD = discord.Object(id=guild)
 
 def main():
     init_db()
@@ -26,9 +24,12 @@ main()
 async def on_ready():
 
     check_watering.start()
-    await bot.tree.sync(guild=discord.Object(id=guild))  # syncs guild commands
-    print('Commands synced.')
-
+    try:
+        await bot.tree.sync()
+        print('Commands synced.')
+    except Exception as e:
+        print(f'Sync failed: {e}')
+        
 class AddPlantModal(discord.ui.Modal, title='Add a Plant'):
     species = discord.ui.TextInput(label='Species')
     nickname = discord.ui.TextInput(label='Nickname')
