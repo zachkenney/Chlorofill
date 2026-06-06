@@ -76,7 +76,7 @@ def addlog(name):
         (plant['id'], today.isoformat(), next_date.isoformat())
     )
     conn.commit()
-    cur.close()
+    conn.close()
 
 def find():
     conn = get_connection()
@@ -108,7 +108,7 @@ def findname(name):
 
     plant = cur.execute(f'SELECT name, species FROM plants WHERE name = ?', (name,))
     conn.commit()
-    cur.close()
+    conn.close()
 
 def delete(name):
     conn = get_connection()
@@ -116,5 +116,5 @@ def delete(name):
 
     plant_delete = cur.execute(f'DELETE FROM plants WHERE name = ?', (name,))
     conn.commit()
-    cur.close()
+    conn.close()
 
