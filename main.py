@@ -10,7 +10,6 @@ import os
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 guild = int(os.getenv('GUILD_ID')) # clean this up once done to make it global.
-channel = os.getenv('CHANNEL_ID')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -25,6 +24,7 @@ main()
 
 @bot.event
 async def on_ready():
+
     check_watering.start()
     await bot.tree.sync(guild=discord.Object(id=guild))  # syncs guild commands
     print('Commands synced.')
@@ -80,5 +80,9 @@ async def check_watering():
     channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
     for plant in plants:
         await channel.send(f"{plant['name']} needs to be watered!")
+
+@check_watering.before_loop
+async def before_check_watering():
+    await bot.wait_until_ready()
 
 bot.run(token)

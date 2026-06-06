@@ -102,14 +102,6 @@ def checkdate(today):
     conn.close()
     return log
 
-def findname(name):
-    conn = get_connection()
-    cur = conn.cursor()
-
-    plant = cur.execute(f'SELECT name, species FROM plants WHERE name = ?', (name,))
-    conn.commit()
-    conn.close()
-
 def delete(name):
     conn = get_connection()
     cur = conn.cursor()
