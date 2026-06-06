@@ -39,17 +39,17 @@ class AddPlantModal(discord.ui.Modal, title='Add a Plant'):
         add(self.nickname.value, self.species.value, int(self.interval.value), self.last_watered.value)
         await interaction.response.send_message(f"{self.nickname.value} added!")    
 
-@bot.tree.command(guild=MY_GUILD)
+@bot.tree.command()
 async def add_plant(interaction: discord.Interaction):
     await interaction.response.send_modal(AddPlantModal())
 
-@bot.tree.command(guild=MY_GUILD)
+@bot.tree.command()
 async def get_plants(interaction: discord.Interaction):
     plants = find()
     table = tabulate([dict(p) for p in plants], headers='keys')
     await interaction.response.send_message(f'```{table}```')
 
-@bot.tree.command(guild=MY_GUILD)
+@bot.tree.command()
 async def watered(interaction: discord.Interaction, nickname:str):
     addlog(nickname)
     await interaction.response.send_message(f'{nickname} watered!')
@@ -68,7 +68,7 @@ class ConfirmDelete(discord.ui.View):
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message('Cancelled.')
 
-@bot.tree.command(guild=MY_GUILD)
+@bot.tree.command()
 async def remove_plant(interaction: discord.Interaction, nickname:str):
     view = ConfirmDelete(nickname)
     await interaction.response.send_message(f'Delete {nickname}, are you sure?', view=view)
