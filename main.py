@@ -22,13 +22,11 @@ main()
 
 @bot.event
 async def on_ready():
-
-    check_watering.start()
     try:
         await bot.tree.sync()
-        print('Commands synced.')
+        logging.info('Commands synced.')
     except Exception as e:
-        print(f'Sync failed: {e}')
+        logging.error(f'Sync failed: {e}')
     if not check_watering.is_running():
         check_watering.start()
         
