@@ -77,7 +77,7 @@ async def remove_plant(interaction: discord.Interaction, nickname:str):
 async def check_watering():
     today = date.today().isoformat()
     plants = checkdate(today)
-    channel = bot.get_channel(int(os.getenv('PLANTS_CHANNEL_ID')))
+    channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
     for plant in plants:
         await channel.send(f"{plant['name']} needs to be watered!")
 
