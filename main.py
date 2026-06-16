@@ -6,6 +6,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 import os
+import dateparser
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
@@ -34,10 +35,19 @@ class AddPlantModal(discord.ui.Modal, title='Add a Plant'):
     species = discord.ui.TextInput(label='Species')
     nickname = discord.ui.TextInput(label='Nickname')
     interval = discord.ui.TextInput(label='Watering interval (days)')
-    last_watered = discord.ui.TextInput(label='Last watered (YYYY-MM-DD)')
+    last_watered = discord.ui.TextInput(label='Last watered (e.g. "yesterday" or "YYYY-MM-DD")')
 
     async def on_submit(self, interaction: discord.Interaction):
-        add(self.nickname.value, self.species.value, int(self.interval.value), self.last_watered.value)
+        try:
+            interval = int(self.interval.value)
+        except ValueError:
+            await interaction.response.send_message('Interval must be a whole number.', ephemeral=True)
+            return
+        parsed = dateparser.parse(self.last_watered.value)
+        if parsed is None:
+            await interaction.response.send_message('Unable to parse date. Try a different format.')
+        last_watered_str = parsed.strftime('%Y-%m-%d')
+        add(self.nickname.value, self.species.value, int(self.interval.value), last_watered_str)
         await interaction.response.send_message(f"{self.nickname.value} added!")    
 
 @bot.tree.command()
