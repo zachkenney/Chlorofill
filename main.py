@@ -35,7 +35,7 @@ class AddPlantModal(discord.ui.Modal, title='Add a Plant'):
     species = discord.ui.TextInput(label='Species')
     nickname = discord.ui.TextInput(label='Nickname')
     interval = discord.ui.TextInput(label='Watering interval (days)')
-    last_watered = discord.ui.TextInput(label='Last watered (e.g. "yesterday" or "YYYY-MM-DD")')
+    last_watered = discord.ui.TextInput(label='Last watered (e.g. "YYYY-MM-DD")')
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
