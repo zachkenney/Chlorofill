@@ -47,8 +47,8 @@ class AddPlantModal(discord.ui.Modal, title='Add a Plant'):
         if parsed is None:
             await interaction.response.send_message('Unable to parse date. Try a different format.')
         last_watered_str = parsed.strftime('%Y-%m-%d')
-        add(self.nickname.value, self.species.value, int(self.interval.value), last_watered_str)
-        await interaction.response.send_message(f"{self.nickname.value} added!")    
+        add(self.nickname.value.lower(), self.species.value, int(self.interval.value), last_watered_str)
+        await interaction.response.send_message(f"{self.nickname.value.capitalize()} added!")    
 
 @bot.tree.command()
 async def add_plant(interaction: discord.Interaction):
@@ -62,8 +62,8 @@ async def get_plants(interaction: discord.Interaction):
 
 @bot.tree.command()
 async def watered(interaction: discord.Interaction, nickname:str):
-    addlog(nickname)
-    await interaction.response.send_message(f'{nickname} watered!')
+    addlog(nickname.lower())
+    await interaction.response.send_message(f'{nickname.lower()} watered!')
 
 class ConfirmDelete(discord.ui.View):
     def __init__(self, nickname):
@@ -82,7 +82,7 @@ class ConfirmDelete(discord.ui.View):
 @bot.tree.command()
 async def remove_plant(interaction: discord.Interaction, nickname:str):
     view = ConfirmDelete(nickname)
-    await interaction.response.send_message(f'Delete {nickname}, are you sure?', view=view)
+    await interaction.response.send_message(f'✋ Delete {nickname}, are you sure?', view=view)
 
 @tasks.loop(hours=24)
 async def check_watering():
@@ -90,7 +90,7 @@ async def check_watering():
     plants = checkdate(today)
     channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
     for plant in plants:
-        await channel.send(f"{plant['name']} needs to be watered!")
+        await channel.send(f"🌱 {plant['name']} needs to be watered!")
 
 @check_watering.before_loop
 async def before_check_watering():
